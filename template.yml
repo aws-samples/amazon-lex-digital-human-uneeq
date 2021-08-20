@@ -190,7 +190,7 @@ Resources:
         Fn::Transform:
           Name: AWS::Include
           Parameters:
-            Location: !Sub s3://${pS3BucketName}/swagger3.yaml
+            Location: !Sub s3://${pS3BucketName}/swagger.yaml
 
   # rConfigLambdaPermission:
   #   Type: "AWS::Lambda::Permission"
