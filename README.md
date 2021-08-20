@@ -1,6 +1,6 @@
 # Amazon Lex and Digital Human Integration
 
-This repository provides the supporting code to deploy the Amazon Lex and digital human integration as described in the blog "How to build integration between Amazon Lex and a Digital Human" %insert github link here - TBD%
+This repository provides the supporting code to deploy the Amazon Lex and digital human integration as described in the blog "How to build integration between Amazon Lex and a Digital Human" %insert blog link here - TBD%
 
 This code use the AWS SAM framework to deploy a simple API on AWS API Gateway and a Lambda function to call a defined Amazon Lex Bot.
 
