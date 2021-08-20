@@ -1,0 +1,215 @@
+# To deploy for the first time, and for each update,
+# run both of the following commands in order:
+#
+# aws cloudformation package \
+# --template-file template.yaml \
+# --output-template-file template-out.yaml \
+# --s3-bucket <your-s3-bucket-name>
+#
+# aws cloudformation deploy \
+# --template-file <path-to-file/template-out.yaml \
+# --stack-name <STACK_NAME> \
+# --capabilities CAPABILITY_IAM
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: API and Lambda function for Uneeq Digital Human and Lex Integration
+Parameters:
+  pProjectName:
+    Description: Name of the Project
+    Type: String
+    Default: digital-human
+  pVersion:
+    Description: The version of the deployment
+    Type: String
+    Default: v1
+  pS3BucketName:
+    Description: The name of the S3 bucket storing the swagger definition file
+    Type: String
+  pLambdaFunctionName:
+    Description: The name of the lambda function that is called by API GW
+    Type: String
+    Default: lex-integration
+  pFunctionRunTime:
+    Description: The runtime of the function
+    Type: String
+    Default: nodejs12.x
+  pFunctionMemorySize:
+    Description: The memory assigned to the function
+    Type: String
+    Default: 1024
+  pFunctionTimeOut:
+    Description: The memory assigned to the function
+    Type: String
+    Default: 60
+  pAPIStageName:
+    Description: The Stage name to deploy the API to
+    Type: String
+    Default: dev
+  pAPIStageLogingLevel:
+    Description: INFO, ERROR or OFF
+    Type: String
+    Default: INFO
+  pLexBotName:
+    Description: The Name of the Lex Bot for the Digital Human
+    Type: String
+  pLexBotAlias:
+    Description: The Alias of the Lex Bot for the Digital Human
+    Type: String
+  pWelcomeIntentName:
+    Description: The name of the welcome intent
+    Type: String
+    Default: Welcome
+
+Resources:
+  rAPIGWIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${pVersion}-${pProjectName}-APIGW-CW
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "apigateway.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+      Path: /
+  
+  rAPIGWCloudWatchRole:
+    Type: "AWS::ApiGateway::Account"
+    Properties:
+      CloudWatchRoleArn: !GetAtt rAPIGWIAMRole.Arn
+  
+  rLambdaLexExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${pVersion}-${pProjectName}-Lambda-Lex
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+
+  rLambdaLexExecutionPolicy:
+    DependsOn: rLambdaLexExecutionRole
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub ${pVersion}-${pProjectName}-Lambda-Lex
+      Roles: 
+        - !Ref rLambdaLexExecutionRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource:
+            - !Sub arn:${AWS::Partition}:logs:*
+        - Effect: Allow
+          Action:
+            - lex:PostText
+            - lex:PutSession
+          Resource: '*'
+  
+  # CloudWatch Logs - Log Groups
+  rApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: rApiGatewayApi
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/${pVersion}-${pProjectName}-${rApiGatewayApi}
+      RetentionInDays: 7
+
+  rLambdaFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub ${pVersion}-${pProjectName}-lex
+      Description: Lambda handler for API Gateway - Digital Human Integration
+      Environment:
+        Variables:
+          LEXBOT_NAME: !Ref pLexBotName
+          LEXBOT_ALIAS: !Ref pLexBotAlias
+          WELCOME_INTENT: !Ref pWelcomeIntentName
+      Role: !GetAtt rLambdaLexExecutionRole.Arn
+      Handler: index.lambda_handler
+      Runtime: !Ref pFunctionRunTime
+      CodeUri: function/ #UPDATE
+      MemorySize: !Ref pFunctionMemorySize
+      Timeout: !Ref pFunctionTimeOut
+      Tags:
+        Author: Joe Blogs
+        Application: !Ref pProjectName
+      Events:
+        DigiHumanAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref rApiGatewayApi
+            Method: GET
+            Path: /
+            
+  rApiGatewayApi:
+    Type: AWS::Serverless::Api
+    DependsOn: rLambdaFunction
+    Properties:
+      Name: !Sub ${pVersion}-${pProjectName}
+      Description: API to enable Digital Human to Lex Integration
+      #DefinitionUri: !Sub s3://${pS3BucketName}/swagger.yaml #UPDATE
+      StageName: !Ref pAPIStageName
+      EndpointConfiguration:
+        Type: REGIONAL
+      AccessLogSetting:
+        DestinationArn: !GetAtt rApiAccessLogGroup.Arn #arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/api-gateway/${pVersion}-${pProjectName}-lex-integration
+        Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","apiId":"$context.apiId","resourceId":"$context.resourceId","resourcePath":"$context.resourcePath","path":"$context.path","httpMethod":"$context.httpMethod","status":"$context.status","authLatency":"$context.authorizer.integrationLatency","integrationLatency":"$context.integrationLatency","integrationStatus":"$context.integrationStatus","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","errorMessage":"$context.error.message","format":"SLS_ACCESS_LOG","version":"1.0.0"}'
+      MethodSettings:
+        - MetricsEnabled: True
+          ResourcePath: '/*'
+          HttpMethod: '*'
+          LoggingLevel: !Ref pAPIStageLogingLevel
+          DataTraceEnabled: True
+      TracingEnabled: True
+      Variables:
+        # NOTE: Before using this template, replace the <<region>> and <<account>> fields
+        #       in Lambda integration URI in the swagger file to region and accountId 
+        #       you are deploying to
+        dighumanlex: !Ref rLambdaFunction
+      OpenApiVersion: '3.0.0'
+      Cors:
+        AllowOrigin: "'*'"
+        AllowHeaders: "'authorization, content-type'"
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: !Sub s3://${pS3BucketName}/swagger3.yaml
+
+  # rConfigLambdaPermission:
+  #   Type: "AWS::Lambda::Permission"
+  #   DependsOn:
+  #   - rApiGatewayApi
+  #   - rLambdaFunction
+  #   Properties:
+  #     Action: lambda:InvokeFunction
+  #     FunctionName: arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${stageVariables.dighumanlex} #!Ref rLambdaFunction
+  #     Principal: apigateway.amazonaws.com
+
+
+Outputs:
+  ApiUrl:
+    Description: URL of your API endpoint
+    Value: !Join
+      - ''
+      - - https://
+        - !Ref rApiGatewayApi
+        - '.execute-api.'
+        - !Ref 'AWS::Region'
+        - '.amazonaws.com/dev'

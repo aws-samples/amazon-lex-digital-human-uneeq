@@ -1,0 +1,21 @@
+{
+  "name": "function",
+  "version": "1.0.0",
+  "description": "function code for digital human to lex integration",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "@conwbarr",
+  "license": "ISC",
+  "dependencies": {
+    "html-entities": "^2.3.2",
+    "uuid": "^8.3.2",
+    "uuidv4": "^6.2.11",
+    "winston": "^3.3.3",
+    "xml2js": "^0.4.23"
+  }
+}
