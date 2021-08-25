@@ -199,7 +199,7 @@ Resources:
   #   - rLambdaFunction
   #   Properties:
   #     Action: lambda:InvokeFunction
-  #     FunctionName: arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${stageVariables.dighumanlex} #!Ref rLambdaFunction
+  #     FunctionName: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${stageVariables.dighumanlex} #!Ref rLambdaFunction
   #     Principal: apigateway.amazonaws.com
 
 
