@@ -22,7 +22,7 @@ Parameters:
   pVersion:
     Description: The version of the deployment
     Type: String
-    Default: v1
+    Default: v4
   pS3BucketName:
     Description: The name of the S3 bucket storing the swagger definition file
     Type: String
@@ -53,11 +53,13 @@ Parameters:
   pLexBotName:
     Description: The Name of the Lex Bot for the Digital Human
     Type: String
+    Default: OrderFlowers_enAU
   pLexBotAlias:
     Description: The Alias of the Lex Bot for the Digital Human
     Type: String
+    Default: demo
   pWelcomeIntentName:
-    Description: The name of the welcome intent
+    Description: The name of the welcome intent of the digital human
     Type: String
     Default: Welcome
 
@@ -88,6 +90,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub ${pVersion}-${pProjectName}-Lambda-Lex
+      Description: Provides permissions to Lambda function to call lex bot
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -98,30 +101,10 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonLexRunBotsOnly
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
 
-  rLambdaLexExecutionPolicy:
-    DependsOn: rLambdaLexExecutionRole
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      ManagedPolicyName: !Sub ${pVersion}-${pProjectName}-Lambda-Lex
-      Roles: 
-        - !Ref rLambdaLexExecutionRole
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Action:
-            - logs:CreateLogGroup
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-          Resource:
-            - !Sub arn:${AWS::Partition}:logs:*
-        - Effect: Allow
-          Action:
-            - lex:PostText
-            - lex:PutSession
-          Resource: '*'
-  
   # CloudWatch Logs - Log Groups
   rApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
@@ -143,7 +126,7 @@ Resources:
       Role: !GetAtt rLambdaLexExecutionRole.Arn
       Handler: index.lambda_handler
       Runtime: !Ref pFunctionRunTime
-      CodeUri: function/ #UPDATE
+      CodeUri: function/
       MemorySize: !Ref pFunctionMemorySize
       Timeout: !Ref pFunctionTimeOut
       Tags:
@@ -163,12 +146,11 @@ Resources:
     Properties:
       Name: !Sub ${pVersion}-${pProjectName}
       Description: API to enable Digital Human to Lex Integration
-      #DefinitionUri: !Sub s3://${pS3BucketName}/swagger.yaml #UPDATE
       StageName: !Ref pAPIStageName
       EndpointConfiguration:
         Type: REGIONAL
       AccessLogSetting:
-        DestinationArn: !GetAtt rApiAccessLogGroup.Arn #arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/api-gateway/${pVersion}-${pProjectName}-lex-integration
+        DestinationArn: !GetAtt rApiAccessLogGroup.Arn
         Format: '{"requestTime":"$context.requestTime","requestId":"$context.requestId","apiId":"$context.apiId","resourceId":"$context.resourceId","resourcePath":"$context.resourcePath","path":"$context.path","httpMethod":"$context.httpMethod","status":"$context.status","authLatency":"$context.authorizer.integrationLatency","integrationLatency":"$context.integrationLatency","integrationStatus":"$context.integrationStatus","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","errorMessage":"$context.error.message","format":"SLS_ACCESS_LOG","version":"1.0.0"}'
       MethodSettings:
         - MetricsEnabled: True
@@ -178,9 +160,6 @@ Resources:
           DataTraceEnabled: True
       TracingEnabled: True
       Variables:
-        # NOTE: Before using this template, replace the <<region>> and <<account>> fields
-        #       in Lambda integration URI in the swagger file to region and accountId 
-        #       you are deploying to
         dighumanlex: !Ref rLambdaFunction
       OpenApiVersion: '3.0.0'
       Cors:
@@ -191,17 +170,6 @@ Resources:
           Name: AWS::Include
           Parameters:
             Location: !Sub s3://${pS3BucketName}/swagger.yaml
-
-  # rConfigLambdaPermission:
-  #   Type: "AWS::Lambda::Permission"
-  #   DependsOn:
-  #   - rApiGatewayApi
-  #   - rLambdaFunction
-  #   Properties:
-  #     Action: lambda:InvokeFunction
-  #     FunctionName: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${stageVariables.dighumanlex} #!Ref rLambdaFunction
-  #     Principal: apigateway.amazonaws.com
-
 
 Outputs:
   ApiUrl:
