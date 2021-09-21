@@ -4,7 +4,7 @@ info:
   version: "v1.0"
 paths:
   /:
-    any:
+    post:
       summary: List tasks
       description: Returns response from Lex
       responses:
@@ -23,7 +23,7 @@ paths:
         uri:
           Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${rLambdaFunction.Arn}/invocations
         responses:
-          default:
+          default:  
             statusCode: "200"
         passthroughBehavior: "when_no_match"
         httpMethod: "POST"

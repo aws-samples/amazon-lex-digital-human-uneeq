@@ -22,7 +22,7 @@ Parameters:
   pVersion:
     Description: The version of the deployment
     Type: String
-    Default: v4
+    Default: v6
   pS3BucketName:
     Description: The name of the S3 bucket storing the swagger definition file
     Type: String
@@ -137,7 +137,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref rApiGatewayApi
-            Method: GET
+            Method: POST
             Path: /
             
   rApiGatewayApi:
