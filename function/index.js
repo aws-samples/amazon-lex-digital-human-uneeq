@@ -12,23 +12,16 @@
  * [Digital Human]<--->[API Gateway]<--->[this AWS Lambda function]<--->[Amazon Lex]
  *
  * The AWS Lambda function must have the following environment variables configured:
- * 1. 
- * 2. 
- * 3. BOT_NAME - the name of the Amazon Lex bot
- * 4. BOT_ALIAS - the name of the Amazon Lex bot alias
+ * 1. LEXBOT_NAME - the name of the Amazon Lex bot
+ * 2. LEXBOT_ALIAS - the name of the Amazon Lex bot alias
+ * 3. WELCOME_INTENT - the name of the welcome intent configured as aprt of the Lex bot
+ 
  ******************/
  const uuid = require('uuid')
- //const logger = require('./utils/logger.js')
  const format = require('./utils/format.js')
 
  // Require aws module
  const AWS = require('aws-sdk')
- 
- //AWS.config.update({
- //    accessKeyId: process.env.LEX_CONFIG_ACCESSKEYID,
- //    secretAccessKey: process.env.LEX_CONFIG_SECRETACCESSKEY,
- //    region: process.env.LEX_CONFIG_AWSREGION,
- //})
  
 exports.lambda_handler = async function(event) {
    console.log("ENVIRONMENT VARIABLES\n" + JSON.stringify(process.env, null, 2))
