@@ -30,6 +30,9 @@ Steps:
 ###Install the node dependencies
 ```cd function && npm install && cd ..```
 
+###Upload the Swagger file to S3
+```aws s3 cp swagger.yaml s3://%S3BUCKETNAME%/swagger.yaml```
+
 ###Deploy the Application
 
 ```sam deploy --template-file template.yml --s3-bucket %S3BUCKETNAME% --stack-name %STACKNAME% --parameter-overrides pLexBotName=OrderFlowers_enAU pLexBotAlias=demo pS3BucketName=%S3BucketName% --capabilities CAPABILITY_NAMED_IAM```
