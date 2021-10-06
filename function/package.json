@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "@conwbarr",
-  "license": "ISC",
+  "license": "MIT-0",
   "dependencies": {
     "html-entities": "^2.3.2",
     "uuid": "^8.3.2",
