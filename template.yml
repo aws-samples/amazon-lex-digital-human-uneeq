@@ -1,4 +1,4 @@
-# To deploy for the first time, and for each update,
+#To deploy for the first time, and for each update,
 # run both of the following commands in order:
 #
 # aws cloudformation package \
