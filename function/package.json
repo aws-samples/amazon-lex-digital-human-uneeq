@@ -12,6 +12,7 @@
   "author": "@conwbarr",
   "license": "MIT-0",
   "dependencies": {
+    "@aws-sdk/client-lex-runtime-v2": "^3.36.1",
     "html-entities": "^2.3.2",
     "uuid": "^8.3.2",
     "uuidv4": "^6.2.11",

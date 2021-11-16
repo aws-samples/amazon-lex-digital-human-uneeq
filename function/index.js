@@ -56,14 +56,14 @@ exports.lambda_handler = async function(event) {
          /* Lex uses the userId field in the query params to maintain session state during a
           * conversation - the value is user-defined, and then passed in the conversationPayload
           * so that it is returned in the next request */
-         params.userId = uuid.v4()
+         params.sessionId = uuid.v4(),
          params.sessionState.intent = {
-                name: process.env.LEXV2_CONFIG_WELCOMEINTENT,
+                name: process.env.WELCOME_INTENT,
             }
             params.sessionState.dialogAction = {
                 type: 'Delegate',
             }
-         conversationPayload = { platformSessionId: params.userId }
+         conversationPayload = { platformSessionId: params.sessionId }
  
          response = await lexruntimev2.putSession(params).promise()
          response.messages = await unzipMessages(response.messages)

@@ -53,15 +53,12 @@ Parameters:
   pLexBotID:
     Description: The Name of the Lex Bot for the Digital Human
     Type: String
-    Default: OrderFlowers_enAU
   pLexBotAliasID:
     Description: The Alias of the Lex Bot for the Digital Human
     Type: String
-    Default: demo
   pWelcomeIntentName:
     Description: The name of the welcome intent of the digital human
     Type: String
-    Default: Welcome
   pLocaleID:
     Description: The name of the welcome intent of the digital human
     Type: String
