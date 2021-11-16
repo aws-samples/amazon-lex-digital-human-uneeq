@@ -22,7 +22,7 @@ Parameters:
   pVersion:
     Description: The version of the deployment
     Type: String
-    Default: v6
+    Default: v8
   pS3BucketName:
     Description: The name of the S3 bucket storing the swagger definition file
     Type: String
@@ -50,11 +50,11 @@ Parameters:
     Description: INFO, ERROR or OFF
     Type: String
     Default: INFO
-  pLexBotName:
+  pLexBotID:
     Description: The Name of the Lex Bot for the Digital Human
     Type: String
     Default: OrderFlowers_enAU
-  pLexBotAlias:
+  pLexBotAliasID:
     Description: The Alias of the Lex Bot for the Digital Human
     Type: String
     Default: demo
@@ -62,6 +62,10 @@ Parameters:
     Description: The name of the welcome intent of the digital human
     Type: String
     Default: Welcome
+  pLocaleID:
+    Description: The name of the welcome intent of the digital human
+    Type: String
+    Default: en_AU
 
 Resources:
   rAPIGWIAMRole:
@@ -120,9 +124,10 @@ Resources:
       Description: Lambda handler for API Gateway - Digital Human Integration
       Environment:
         Variables:
-          LEXBOT_NAME: !Ref pLexBotName
-          LEXBOT_ALIAS: !Ref pLexBotAlias
+          LEXBOT_ID: !Ref pLexBotID
+          LEXBOT_ALIAS_ID: !Ref pLexBotAliasID
           WELCOME_INTENT: !Ref pWelcomeIntentName
+          LEXBOT_LOCALE_ID: !Ref pLocaleID
       Role: !GetAtt rLambdaLexExecutionRole.Arn
       Handler: index.lambda_handler
       Runtime: !Ref pFunctionRunTime

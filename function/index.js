@@ -26,7 +26,7 @@ exports.lambda_handler = async function(event) {
    const fmQuestion = body['fm-question'] //question asked by user
    const fmConversation = body['fm-conversation'] //string passed in previous response 'converationPayload'
    const fmAvatar = JSON.parse(body['fm-avatar']) //contextual information, 'type' is 'WELCOME' or 'QUESTION'
-   const fmType = fmAvatar['type']
+   const fmType = fmAvatar.type
    
    console.log("fmQuestionValue" + fmQuestion)
    console.log("fmConversationValue" + fmConversation)
@@ -36,16 +36,18 @@ exports.lambda_handler = async function(event) {
      let conversationPayload = {}
      let response = {}
      let params = {
-         botAlias: process.env.LEXBOT_ALIAS,
-         botName: process.env.LEXBOT_NAME,
-         sessionAttributes: {},
+         botAliasId: process.env.LEXBOT_ALIAS_ID,
+         botId: process.env.LEXBOT_ID,
+         localeId: process.env.LEXBOT_LOCALE_ID,
+         sessionState: {},
      }
      
      console.log("PrintParams" + params)
      console.log("PrintResponse" + response)
      console.log("PrintConversationPayload" + conversationPayload)
      
- let lexruntime = new AWS.LexRuntime()
+    let lexruntimev2 = new AWS.LexRuntimeV2()
+
  switch (fmType) {
      /* The 'type' field in 'fm-avatar' specifies if this is the beginning of a new conversation
       * with a persona ('WELCOME'), or the next request in a continuing conversation ('QUESTION') */
@@ -55,15 +57,17 @@ exports.lambda_handler = async function(event) {
           * conversation - the value is user-defined, and then passed in the conversationPayload
           * so that it is returned in the next request */
          params.userId = uuid.v4()
-         params.accept = 'text/plain; charset=utf-8'
-         params.dialogAction = {
-             intentName: process.env.WELCOME_INTENT,
-             type: 'Delegate',
-         }
+         params.sessionState.intent = {
+                name: process.env.LEXV2_CONFIG_WELCOMEINTENT,
+            }
+            params.sessionState.dialogAction = {
+                type: 'Delegate',
+            }
          conversationPayload = { platformSessionId: params.userId }
  
-         response = await lexruntime.putSession(params).promise()
- 
+         response = await lexruntimev2.putSession(params).promise()
+         response.messages = await unzipMessages(response.messages)
+
          console.info('Got Lex putSession response')
          console.warn(`Raw Lex putSession response: ${JSON.stringify(response)}`)
          break
@@ -71,17 +75,17 @@ exports.lambda_handler = async function(event) {
      case 'QUESTION':
          console.debug('Type is QUESTION')
          conversationPayload = JSON.parse(fmConversation)
-         params.userId = conversationPayload.platformSessionId
+         params.sessionId = conversationPayload.platformSessionId
          /* Lex returns an error if an empty string is passed as the input text - replacing
           * the empty string with a period triggers the fallback intent, so the end user hears a
           * fallback/clarification response */
-         if (fmQuestion == '') {
-             params.inputText = '.'
-         } else {
-             params.inputText = fmQuestion
-         }
- 
-         response = await lexruntime.postText(params).promise()
+          if (fmQuestion == '') {
+            params.text = '.'
+          } else {
+            params.text = fmQuestion
+          }
+
+         response = await lexruntimev2.recognizeText(params).promise()
  
          console.info('Got Lex postText response')
          console.debug(`Raw Lex postText response: ${JSON.stringify(response)}`)
@@ -91,6 +95,7 @@ exports.lambda_handler = async function(event) {
     let { answer, instructions } = await parseResponse(response)
     return format.responseJSON(answer, instructions, conversationPayload)
     }
+
 /**
  * Parses the message field from the response to the putSession or postText methods, to extract the dialog
  * that will be spoken by the digital human, and any instruction payloads that have been defined as
@@ -99,64 +104,51 @@ exports.lambda_handler = async function(event) {
  * @param {object} response The response JSON from Lex
  * @return {string} answer and instructions (stringified JSON)
  */
-let parseResponse = async (response) => {
+ let parseResponse = async (response) => {
     let answer = ''
     let instructions = {}
     let customPayload = {}
     let foundFirstCustomPayload = false
     let containsSSML = false
 
-    switch (response.messageFormat) {
-        case 'PlainText':
-            answer = await format.parseAnswer(response.message)
-            break
-        case 'SSML':
-            /* Lex will recognise properly formed SSML entered as a text response for an
-             * intent, and automatically passes these responses as type 'SSML' - as this
-             * has already been parsed by the Lex platform, the parseAnswer function (which
-             * checks for structure validity and applies SSML) is not needed */
-            answer = response.message
-            break
-        case 'Composite':
-            /* The 'Composite' messageFormat is returned when the author has configured multiple
-             * responses for the intent in Lex - in this case the message field contains an array
-             * of the three message types. This API implements CustomPayload as the method for authors
-             * to pass platform instructions */
-            let compositeMessage = JSON.parse(response.message)
-            var message = {}
-            for (var i = 0; i < compositeMessage.messages.length; i++) {
-                message = compositeMessage.messages[i]
-
-                switch (message.type) {
-                    case 'PlainText':
-                        answer += `${message.value} `
-                        break
-                    case 'SSML':
-                        answer += `${message.value.replace(/"/g, "'")} `
-                        containsSSML = true
-                        break
-                    case 'CustomPayload':
-                        if (!foundFirstCustomPayload) {
-                            try {
-                                customPayload = JSON.parse(message.value.replace(/(\r\n|\n|\r)/gm, ''))
-                                instructions = format.parseInstructions(customPayload.instructions)
-                                foundFirstCustomPayload = true
-                            } catch (error) {
-                                console.info(`Could not parse custom payload: ${response}`)
-                            }
-                        } else {
-                            console.info(`Ignored additional custom payload: ${response}`)
-                        }
+    for (var i = 0; i < response.messages.length; i++) {
+        switch(response.messages[i].contentType){
+            case 'PlainText':
+                answer += `${response.messages[i].content} `
+                break
+            case 'SSML':
+                answer += `${response.messages[i].content.replace(/"/g, "'")} `
+                containsSSML = true
+                break
+            case 'CustomPayload':
+                if (!foundFirstCustomPayload) {
+                    try {
+                        customPayload = JSON.parse(response.messages[i].content.replace(/(\r\n|\n|\r)/gm, ''))
+                        instructions = format.parseInstructions(JSON.stringify(customPayload.instructions))
+                        foundFirstCustomPayload = true
+                    } catch (error) {
+                        logger.info(`Could not parse custom payload: ${response}`)
+                    }
+                } else {
+                    logger.info(`Ignored additional custom payload: ${response}`)
                 }
-            }
-            if (!containsSSML) {
-                answer = await format.parseAnswer(answer)
-            }
+        }
+    }
+    
+    if (!containsSSML) {
+        answer = await format.parseAnswer(answer)
     }
 
     return { answer, instructions }
 }
 
-//module.exports = {
-//    query,
-//}
+let unzipMessages = async (str) => {
+    const { unzip } = require('zlib');
+    const { promisify } = require('util');
+    const do_unzip = promisify(unzip);
+
+    const buffer = Buffer.from(str, 'base64');
+    const resultBuff = await do_unzip(buffer);
+  
+    return JSON.parse(resultBuff.toString());
+}
