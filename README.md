@@ -27,13 +27,13 @@ Steps:
 3. Upload the Swagger file to an S3 bucket.
 3. From the root of the repo run the below SAM command - ensure the S3 bucket name is updated and the LexBot Name & the LexBot Alias
 
-###Install the node dependencies
+### Install the node dependencies
 ```cd function && npm install && cd ..```
 
-###Upload the Swagger file to S3
+### Upload the Swagger file to S3
 ```aws s3 cp swagger.yaml s3://%S3BUCKETNAME%/swagger.yaml```
 
-###Deploy the Application
+### Deploy the Serverless Application
 
 ```sam deploy --template-file template.yml --s3-bucket %S3BUCKETNAME% --stack-name %STACKNAME% --parameter-overrides pLexBotName=OrderFlowers_enAU pLexBotAlias=demo pS3BucketName=%S3BucketName% --capabilities CAPABILITY_NAMED_IAM```
 
