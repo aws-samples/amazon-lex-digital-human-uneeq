@@ -1,6 +1,6 @@
 ## My Project
 
-TODO: Fill this README out! Test
+TODO: Fill this README out!
 
 Be sure to:
 
