@@ -1,10 +1,10 @@
-# Amazon Lex and Digital Human Integration
+# Amazon LexV1 and Digital Human Integration
 
-This repository provides the supporting code to deploy the Amazon Lex and digital human integration as described in the blog "How to build integration between Amazon Lex and a Digital Human" %insert blog link here - TBD%
+This repository provides the supporting code to deploy an Amazon LexV1 bot and Uneeq digital human integration as described in the blog "How to build integration between Amazon Lex and a Digital Human" %insert blog link here - TBD%
 
 This code use the AWS SAM framework to deploy a simple API on AWS API Gateway and a Lambda function to call a defined Amazon Lex Bot.
 
-Pre-reqs:
+### Pre-reqs:
 
 * An AWS Account
 * AWS Serverless Application Model installed:
@@ -20,20 +20,20 @@ Pre-reqs:
     * Amazon S3
     * AWS SAM (Serverless Application Model)
 
-Steps:
+### Steps:
 
 1. Clone the repo
 2. Install the node dependencies
 3. Upload the Swagger file to an S3 bucket.
 3. From the root of the repo run the below SAM command - ensure the S3 bucket name is updated and the LexBot Name & the LexBot Alias
 
-###Install the node dependencies
+### Install the node dependencies
 ```cd function && npm install && cd ..```
 
-###Upload the Swagger file to S3
+### Upload the Swagger file to S3
 ```aws s3 cp swagger.yaml s3://%S3BUCKETNAME%/swagger.yaml```
 
-###Deploy the Application
+### Deploy the Application
 
 ```sam deploy --template-file template.yml --s3-bucket %S3BUCKETNAME% --stack-name %STACKNAME% --parameter-overrides pLexBotName=OrderFlowers_enAU pLexBotAlias=demo pS3BucketName=%S3BucketName% --capabilities CAPABILITY_NAMED_IAM```
 
