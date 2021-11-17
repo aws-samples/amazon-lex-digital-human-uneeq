@@ -4,7 +4,7 @@ This repository provides the supporting code to deploy the Amazon Lex and digita
 
 This code use the AWS SAM framework to deploy a simple API on AWS API Gateway and a Lambda function to call a defined Amazon Lex Bot.
 
-Pre-reqs:
+### Pre-reqs:
 
 * An AWS Account
 * AWS Serverless Application Model installed:
@@ -20,7 +20,7 @@ Pre-reqs:
     * Amazon S3
     * AWS SAM (Serverless Application Model)
 
-Steps:
+### Steps:
 
 1. Clone the repo
 2. Install the node dependencies
