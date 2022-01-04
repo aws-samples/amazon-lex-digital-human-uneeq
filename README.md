@@ -2,9 +2,23 @@
 
 This repository provides the supporting source code for the blog **Build an integration between Amazon Lex 2 and a digital human**
 
-The repository provides the source code for lex 1 and lex 2
+The repository provides the source code for lex v1 and lex v2
 
-To get started read the blog and clone the code according to the lex version being used.
+To get started read the blog and clone the according source code for the lex version being used.
+
+To clone the specifc branch or branches u
+
+```
+git clone %repository url%
+```
+
+```
+git branch -a
+```
+
+```
+git checkout -b branchname origin/branchname
+```
 
 ## Security
 
