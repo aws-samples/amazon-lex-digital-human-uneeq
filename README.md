@@ -1,11 +1,10 @@
-## My Project
+## amazon lex digital human
 
-TODO: Fill this README out!
+This repository provides the supporting source code for the blog **Build an integration between Amazon Lex 2 and a digital human**
 
-Be sure to:
+The repository provides the source code for lex 1 and lex 2
 
-* Change the title in this README
-* Edit your repository description on GitHub
+To get started read the blog and clone the code according to the lex version being used.
 
 ## Security
 
