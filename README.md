@@ -1,4 +1,4 @@
-# Amazon LexV1 and Digital Human Integration
+# Amazon Lex v1 and Digital Human Integration
 
 This repository provides the supporting code to deploy an Amazon Lex v1 bot and Uneeq digital human integration as described in the blog **Build an integration between Amazon Lex 2 and a digital human**
 
