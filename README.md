@@ -22,9 +22,9 @@ This code uses the AWS SAM Framework to deploy a simple API on AWS API Gateway a
 
 ### Steps:
 
-1. Clone the repo
+1. Clone the repository
 2. Install the node dependencies
-3. Upload the Swagger file to an S3 bucket.
+3. Upload the Swagger file to an S3 bucket
 3. From the root of the repo run the below SAM command - ensure the S3 bucket name is updated and the LexBot Name & the LexBot Alias
 
 ### Install the node dependencies
