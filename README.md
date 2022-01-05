@@ -35,7 +35,7 @@ This code uses the AWS SAM Framework to deploy a simple API on AWS API Gateway a
 
 ### Deploy the Serverless Application
 
-```sam deploy --template-file template.yml --s3-bucket %S3BUCKETNAME% --stack-name %STACKNAME% --parameter-overrides pLexBotName=OrderFlowers_enAU pLexBotAlias=demo pS3BucketName=%S3BucketName% --capabilities CAPABILITY_NAMED_IAM```
+```sam deploy --template-file template.yml --s3-bucket %S3BUCKETNAME% --stack-name %STACKNAME% --parameter-overrides pLexBotID=%LexV2BotID% pLexBotAliasID=%AliasID% pWelcomeIntentName=Welcome pLocaleID=en_AU pS3BucketName=%S3BucketName% --capabilities CAPABILITY_NAMED_IAM```
 
 When this command has completed the API, and Lambda function will have been deployed.
 

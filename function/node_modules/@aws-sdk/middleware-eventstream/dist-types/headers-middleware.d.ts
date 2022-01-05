@@ -1,0 +1,3 @@
+import { BuildHandlerOptions, BuildMiddleware } from "@aws-sdk/types";
+export declare const eventStreamHeaderMiddleware: BuildMiddleware<any, any>;
+export declare const eventStreamHeaderMiddlewareOptions: BuildHandlerOptions;
