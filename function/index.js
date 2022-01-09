@@ -47,13 +47,8 @@ exports.lambda_handler = async function(event) {
      
  let lexruntime = new AWS.LexRuntime()
  switch (fmType) {
-     /* The 'type' field in 'fm-avatar' specifies if this is the beginning of a new conversation
-      * with a persona ('WELCOME'), or the next request in a continuing conversation ('QUESTION') */
      case 'WELCOME':
          console.debug('Type is WELCOME')
-         /* Lex uses the userId field in the query params to maintain session state during a
-          * conversation - the value is user-defined, and then passed in the conversationPayload
-          * so that it is returned in the next request */
          params.userId = uuid.v4()
          params.accept = 'text/plain; charset=utf-8'
          params.dialogAction = {
@@ -72,9 +67,6 @@ exports.lambda_handler = async function(event) {
          console.debug('Type is QUESTION')
          conversationPayload = JSON.parse(fmConversation)
          params.userId = conversationPayload.platformSessionId
-         /* Lex returns an error if an empty string is passed as the input text - replacing
-          * the empty string with a period triggers the fallback intent, so the end user hears a
-          * fallback/clarification response */
          if (fmQuestion == '') {
              params.inputText = '.'
          } else {
@@ -92,9 +84,6 @@ exports.lambda_handler = async function(event) {
     return format.responseJSON(answer, instructions, conversationPayload)
     }
 /**
- * Parses the message field from the response to the putSession or postText methods, to extract the dialog
- * that will be spoken by the digital human, and any instruction payloads that have been defined as
- * parameters in the matched intent, and returns an answer string and instructions JSON for the response payload.
  *
  * @param {object} response The response JSON from Lex
  * @return {string} answer and instructions (stringified JSON)
@@ -111,17 +100,9 @@ let parseResponse = async (response) => {
             answer = await format.parseAnswer(response.message)
             break
         case 'SSML':
-            /* Lex will recognise properly formed SSML entered as a text response for an
-             * intent, and automatically passes these responses as type 'SSML' - as this
-             * has already been parsed by the Lex platform, the parseAnswer function (which
-             * checks for structure validity and applies SSML) is not needed */
             answer = response.message
             break
         case 'Composite':
-            /* The 'Composite' messageFormat is returned when the author has configured multiple
-             * responses for the intent in Lex - in this case the message field contains an array
-             * of the three message types. This API implements CustomPayload as the method for authors
-             * to pass platform instructions */
             let compositeMessage = JSON.parse(response.message)
             var message = {}
             for (var i = 0; i < compositeMessage.messages.length; i++) {
@@ -156,7 +137,3 @@ let parseResponse = async (response) => {
 
     return { answer, instructions }
 }
-
-//module.exports = {
-//    query,
-//}
