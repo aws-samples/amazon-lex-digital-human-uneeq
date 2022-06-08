@@ -1,6 +1,6 @@
 # Amazon Lex v2 and Digital Human Integration
 
-This repository provides the supporting code to deploy Amazon Lex v2 and digital human integration as described in the blog **Build an integration between Amazon Lex 2 and a digital human**
+This repository provides the supporting code to deploy Amazon Lex v2 and digital human integration as described in the blog **Integrate Amazon Lex and Uneeq’s digital human platform**
 
 This code uses the AWS SAM Framework to deploy a simple API on AWS API Gateway and a Lambda function to call a defined Amazon Lex v2 Bot.
 
