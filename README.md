@@ -1,7 +1,7 @@
 ## Amazon Lex Digital Human
 
 This repository provides the supporting source code for the blog 
-**Build an integration between Amazon Lex 2 and a digital human**
+**Integrate Amazon Lex and Uneeq’s digital human platform**
 
 The repository provides the source code for lex v1 and lex v2
 
